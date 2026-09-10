@@ -78,8 +78,9 @@ Centralized structured logging powered by **NLog** with non-blocking asynchronou
   - Non-blocking async queue ensures Bluetooth LE advertisement processing and UI threads never stall.
 - **Debugger Target**: Streams colored log events directly to Visual Studio / IDE Output.
 - **Convenient Static Facade**:
-  - `AppLogger.D(msg, tag)`
-  - `AppLogger.I(msg, tag)`
-  - `AppLogger.W(msg, tag)`
-  - `AppLogger.E(msg, exception, tag)`
+  - `AppLogger.Debug(msg, tag)`
+  - `AppLogger.Info(msg, tag)`
+  - `AppLogger.Warn(msg, tag)` (or `AppLogger.Warning`)
+  - `AppLogger.Error(msg, exception, tag)`
+  - `AppLogger.Fatal(msg, exception, tag)` (used for unhandled crashes in `App.xaml.cs`)
 - Swallowed exceptions and unlogged errors are strictly prohibited across all layers.

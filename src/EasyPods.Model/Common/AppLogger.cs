@@ -65,7 +65,7 @@ public static class AppLogger
     /// <summary>
     /// Logs a debug message for fine-grained tracing and state transitions.
     /// </summary>
-    public static void D(string message, string tag = "EasyPods")
+    public static void Debug(string message, string tag = "EasyPods")
     {
         EnsureInitialized();
         LogManager.GetLogger(tag).Debug(message);
@@ -74,7 +74,7 @@ public static class AppLogger
     /// <summary>
     /// Logs an informational message for key lifecycle events.
     /// </summary>
-    public static void I(string message, string tag = "EasyPods")
+    public static void Info(string message, string tag = "EasyPods")
     {
         EnsureInitialized();
         LogManager.GetLogger(tag).Info(message);
@@ -83,16 +83,24 @@ public static class AppLogger
     /// <summary>
     /// Logs a warning message for non-fatal or recoverable issues.
     /// </summary>
-    public static void W(string message, string tag = "EasyPods")
+    public static void Warn(string message, string tag = "EasyPods")
     {
         EnsureInitialized();
         LogManager.GetLogger(tag).Warn(message);
     }
 
     /// <summary>
+    /// Alias for Warn. Logs a warning message for non-fatal or recoverable issues.
+    /// </summary>
+    public static void Warning(string message, string tag = "EasyPods")
+    {
+        Warn(message, tag);
+    }
+
+    /// <summary>
     /// Logs an error message and optional exception.
     /// </summary>
-    public static void E(string message, Exception? exception = null, string tag = "EasyPods")
+    public static void Error(string message, Exception? exception = null, string tag = "EasyPods")
     {
         EnsureInitialized();
         var logger = LogManager.GetLogger(tag);
@@ -103,6 +111,23 @@ public static class AppLogger
         else
         {
             logger.Error(message);
+        }
+    }
+
+    /// <summary>
+    /// Logs a fatal error message for unhandled exceptions and application crash situations.
+    /// </summary>
+    public static void Fatal(string message, Exception? exception = null, string tag = "EasyPods")
+    {
+        EnsureInitialized();
+        var logger = LogManager.GetLogger(tag);
+        if (exception is not null)
+        {
+            logger.Fatal(exception, message);
+        }
+        else
+        {
+            logger.Fatal(message);
         }
     }
 

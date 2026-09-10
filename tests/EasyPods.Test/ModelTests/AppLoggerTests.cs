@@ -10,11 +10,13 @@ public class AppLoggerTests
     {
         AppLogger.Initialize();
 
-        // Exercise all log levels
-        AppLogger.D("Debug message test", tag: "UnitTest");
-        AppLogger.I("Info message test", tag: "UnitTest");
-        AppLogger.W("Warn message test", tag: "UnitTest");
-        AppLogger.E("Error message test", new InvalidOperationException("Test ex"), tag: "UnitTest");
+        // Exercise all requested log levels: Debug, Info, Warn/Warning, Error, Fatal
+        AppLogger.Debug("Debug trace test", tag: "UnitTest");
+        AppLogger.Info("Info lifecycle test", tag: "UnitTest");
+        AppLogger.Warn("Warn warning test", tag: "UnitTest");
+        AppLogger.Warning("Warning alias test", tag: "UnitTest");
+        AppLogger.Error("Error failure test", new InvalidOperationException("Test ex"), tag: "UnitTest");
+        AppLogger.Fatal("Fatal crash test", new AccessViolationException("Crash simulation"), tag: "UnitTest");
 
         var logger = AppLogger.GetLogger("CustomTag");
         Assert.NotNull(logger);
