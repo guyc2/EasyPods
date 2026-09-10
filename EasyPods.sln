@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{1C4152C4-E7AE-427D-9916-D49276D1298C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyPods.Model", "src\EasyPods.Model\EasyPods.Model.csproj", "{F40D5F88-14DE-43AB-97E4-11CF9203DE07}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyPods.ViewModel", "src\EasyPods.ViewModel\EasyPods.ViewModel.csproj", "{A6042172-1B7D-4FBB-99CF-83E9CDC2A00F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyPods.View", "src\EasyPods.View\EasyPods.View.csproj", "{EAFEE755-E4A6-4261-A239-A6A34ED576D2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0E3902AC-FDBC-4743-A1DB-D6293E20B1D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyPods.Test", "tests\EasyPods.Test\EasyPods.Test.csproj", "{71902F61-B6CE-4265-9AFF-7659ABA914A7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F40D5F88-14DE-43AB-97E4-11CF9203DE07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F40D5F88-14DE-43AB-97E4-11CF9203DE07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F40D5F88-14DE-43AB-97E4-11CF9203DE07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F40D5F88-14DE-43AB-97E4-11CF9203DE07}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6042172-1B7D-4FBB-99CF-83E9CDC2A00F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6042172-1B7D-4FBB-99CF-83E9CDC2A00F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6042172-1B7D-4FBB-99CF-83E9CDC2A00F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6042172-1B7D-4FBB-99CF-83E9CDC2A00F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EAFEE755-E4A6-4261-A239-A6A34ED576D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EAFEE755-E4A6-4261-A239-A6A34ED576D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EAFEE755-E4A6-4261-A239-A6A34ED576D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EAFEE755-E4A6-4261-A239-A6A34ED576D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71902F61-B6CE-4265-9AFF-7659ABA914A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71902F61-B6CE-4265-9AFF-7659ABA914A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71902F61-B6CE-4265-9AFF-7659ABA914A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71902F61-B6CE-4265-9AFF-7659ABA914A7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F40D5F88-14DE-43AB-97E4-11CF9203DE07} = {1C4152C4-E7AE-427D-9916-D49276D1298C}
+		{A6042172-1B7D-4FBB-99CF-83E9CDC2A00F} = {1C4152C4-E7AE-427D-9916-D49276D1298C}
+		{EAFEE755-E4A6-4261-A239-A6A34ED576D2} = {1C4152C4-E7AE-427D-9916-D49276D1298C}
+		{71902F61-B6CE-4265-9AFF-7659ABA914A7} = {0E3902AC-FDBC-4743-A1DB-D6293E20B1D2}
+	EndGlobalSection
+EndGlobal

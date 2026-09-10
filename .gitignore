@@ -1,0 +1,42 @@
+## .gitignore for Visual Studio, .NET, and WPF
+
+# Build and Output directories
+bin/
+obj/
+out/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]uild/
+
+# Visual Studio & IDE files
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+.vscode/
+*.DotSettings.user
+
+# NuGet Packages
+*.nupkg
+packages/
+*.nuget.props
+*.nuget.targets
+
+# Test results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Logs
+*.log
