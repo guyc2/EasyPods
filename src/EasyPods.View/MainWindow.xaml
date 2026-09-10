@@ -89,6 +89,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <!-- Device Header with Signal Badge -->
@@ -115,6 +116,12 @@
                             <Button Content="Connect Audio" 
                                     Style="{StaticResource ModernButtonStyle}"
                                     Command="{Binding ConnectDeviceCommand}"
+                                    CommandParameter="{Binding SelectedAirPods}"/>
+                            <Button Content="Disconnect" 
+                                    Style="{StaticResource ModernButtonStyle}"
+                                    Background="#252A3C"
+                                    Margin="8,0,0,0"
+                                    Command="{Binding DisconnectDeviceCommand}"
                                     CommandParameter="{Binding SelectedAirPods}"/>
                         </StackPanel>
                     </DockPanel>
@@ -170,8 +177,25 @@
                         </Border>
                     </UniformGrid>
 
+                    <!-- Hardware Automation & Controls Bar -->
+                    <Border Grid.Row="2" Background="#161924" CornerRadius="8" Padding="12,8" Margin="0,8,0,0">
+                        <DockPanel>
+                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                                <CheckBox Content="👂 Auto-Pause on Ear Removal" 
+                                          IsChecked="{Binding IsAutoPauseEnabled}" 
+                                          Foreground="#C8D0E0" FontSize="12" Margin="0,0,16,0" VerticalAlignment="Center"/>
+                                <CheckBox Content="⚡ Auto-Connect on Lid Open" 
+                                          IsChecked="{Binding IsAutoConnectEnabled}" 
+                                          Foreground="#C8D0E0" FontSize="12" Margin="0,0,16,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="{Binding HardwareStatus}" 
+                                       Foreground="#30D158" FontSize="11" FontWeight="SemiBold" 
+                                       HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                        </DockPanel>
+                    </Border>
+
                     <!-- Bottom Quick Info with Last Seen -->
-                    <DockPanel Grid.Row="2" Margin="0,12,0,0">
+                    <DockPanel Grid.Row="3" Margin="0,12,0,0">
                         <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
                             <TextBlock Text="Beacon Telemetry: " FontSize="11" Foreground="#6E768E"/>
                             <TextBlock Text="{Binding SelectedAirPods.LastSeenText, FallbackValue='Listening...'}" FontSize="11" Foreground="#82AAFF"/>

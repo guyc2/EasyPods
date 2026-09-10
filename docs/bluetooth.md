@@ -1,25 +1,27 @@
 ---
-title: Windows Bluetooth Architecture & WinRT Integration
+title: Windows Bluetooth Architecture & Hardware Automations
 tags:
   - easypods
   - bluetooth
   - winrt
   - ble
+  - hardware
+  - automation
 ---
 
-# Windows Bluetooth Architecture & WinRT Integration
+# Windows Bluetooth Architecture & Hardware Automations
 
-This document outlines how EasyPods interacts with the Windows Bluetooth subsystem via Windows Runtime (WinRT) APIs.
+This document outlines how EasyPods interacts with the Windows Bluetooth subsystem via Windows Runtime (WinRT) APIs and manages active hardware control.
 
 ---
 
-## 1. WinRT Bluetooth APIs
+## 1. WinRT Bluetooth & Audio APIs
 
 EasyPods utilizes native Windows 10/11 WinRT APIs without external COM dependencies:
-- **`Windows.Devices.Bluetooth.BluetoothDevice`**: Classic Bluetooth connection, pairing status, audio device profiles.
-- **`Windows.Devices.Bluetooth.Advertisement.BluetoothLEAdvertisementWatcher`**: Low-latency background BLE advertisement packet receiver.
+- **`Windows.Devices.Bluetooth.BluetoothDevice`**: Classic Bluetooth connection, pairing status, audio device profiles, RFCOMM uncached handshakes.
+- **`Windows.Devices.Bluetooth.Advertisement.BluetoothLEAdvertisementWatcher`**: Low-latency background BLE advertisement packet sniffer.
 - **`Windows.Devices.Radios.Radio`**: Monitoring adapter power state (On, Off, Disabled).
-- **`Windows.Media.Devices.MediaDevice`**: Monitoring and switching default multimedia audio playback endpoints.
+- **`Windows.Media.Devices.MediaDevice`**: Monitoring and switching default multimedia and communications audio playback endpoints.
 
 ---
 
@@ -28,8 +30,10 @@ EasyPods utilizes native Windows 10/11 WinRT APIs without external COM dependenc
 ```mermaid
 sequenceDiagram
     participant UI as EasyPods.View / ViewModel
+    participant Auto as AutoConnect & InEar Services
     participant BT as WindowsBluetoothService
     participant WinRT as WinRT Watcher & Device
+    participant Audio as WindowsAudioEndpointService
     participant Pods as Apple AirPods
 
     UI->>BT: StartMonitoringAsync()
@@ -37,20 +41,44 @@ sequenceDiagram
     Pods-->>WinRT: Broadcast Apple BLE Manufacturer Beacon
     WinRT-->>BT: Received Advertisement (args.RawSignalStrengthInDBm)
     BT->>BT: Parse Battery, Charging & Proximity
+    BT-->>Auto: ProcessDeviceTelemetry / EvaluateAutoConnect
     BT-->>UI: OnAirPodsTelemetryUpdated(AirPodsDevice)
-    UI->>BT: ConnectAudioAsync(address)
-    BT->>WinRT: BluetoothDevice.FromBluetoothAddressAsync()
-    BT->>WinRT: Set Default Audio Endpoint
-    BT-->>UI: Result.Success()
+    
+    opt Case Lid Open Proximity (RSSI >= -75 dBm)
+        Auto->>BT: ConnectAudioAsync(address)
+        BT->>WinRT: BluetoothDevice.FromBluetoothAddressAsync()
+        BT->>Audio: SetDefaultPlaybackDeviceAsync(name)
+    end
+
+    opt Ear Removal Detected
+        Auto->>Auto: Dispatch VK_MEDIA_PLAY_PAUSE (Pause)
+    end
+
+    opt Ear Insertion Detected
+        Auto->>Auto: Dispatch VK_MEDIA_PLAY_PAUSE (Resume)
+    end
 ```
 
 ---
 
-## 3. BluetoothLEAdvertisementWatcher Implementation
+## 3. Hardware Automations (`EasyPods.Model.Hardware`)
 
-Configured in `EasyPods.Model.Bluetooth.WindowsBluetoothService`:
-- **Scanning Mode**: `BluetoothLEScanningMode.Active` (requests scan response packets).
-- **Company ID Filter**: Filtered at the Windows kernel driver level for Apple Inc. (`0x004C`) to minimize CPU wakeups.
-- **Signal Strength**: Extracts `RawSignalStrengthInDBm` (RSSI) and maps to proximity states (`Excellent`, `Good`, `Fair`, `Weak`).
-- **Buffer Safety**: Uses `Windows.Storage.Streams.DataReader` to copy payload bytes safely with bounds protection.
-- **Resource Lifecycle**: Implements `IDisposable` and `IAsyncDisposable` to stop watcher threads and unregister native WinRT event delegates cleanly.
+### A. In-Ear Auto-Pause & Auto-Resume (`WindowsInEarAutomationService`)
+- Listens to real-time optical/capacitive skin sensor changes (`LeftInEar`, `RightInEar`).
+- Automatically dispatches Windows system media key `VK_MEDIA_PLAY_PAUSE` (`0xB3`) via P/Invoke `keybd_event`.
+- Features a **400ms debounce hysteresis** to prevent stutter when adjusting pods in the ear.
+- Tracks `HasAutoPaused` so it only auto-resumes if EasyPods originally paused it.
+
+### B. Proximity Case Lid Auto-Connect (`WindowsAutoConnectService`)
+- Triggers when `IsCaseLidOpen == true` within proximity threshold (default `-75 dBm`).
+- Connects paired AirPods before they are even inserted into the ears.
+- Enforces a **10-second cooldown** to prevent duplicate connection requests.
+
+### C. Audio Endpoint Management (`WindowsAudioEndpointService`)
+- Uses WinRT `MediaDevice.GetAudioRenderSelector()` and `DeviceInformation.FindAllAsync()`.
+- Automatically sets default playback device upon connection and restores the previous default speaker upon disconnect.
+
+### D. Listening Mode & Noise Control (`WindowsNoiseControlService`)
+- Enforces model-aware noise control rules:
+  - `ActiveNoiseCancellation` and `Transparency`: AirPods Pro 1/2, AirPods Max, AirPods 4 ANC.
+  - `Adaptive Audio`: AirPods Pro 2, AirPods 4 ANC.

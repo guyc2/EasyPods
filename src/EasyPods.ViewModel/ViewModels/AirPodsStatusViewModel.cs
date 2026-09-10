@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using EasyPods.Model.Entities;
+using EasyPods.Model.Hardware;
 using EasyPods.ViewModel.Common;
 
 namespace EasyPods.ViewModel.ViewModels;
@@ -72,6 +73,18 @@ public sealed partial class AirPodsStatusViewModel : BaseViewModel
     [ObservableProperty]
     private string _caseLidText = "Closed";
 
+    [ObservableProperty]
+    private bool _supportsNoiseControl;
+
+    [ObservableProperty]
+    private bool _supportsAdaptiveAudio;
+
+    [ObservableProperty]
+    private NoiseControlMode _noiseControlMode = NoiseControlMode.Off;
+
+    [ObservableProperty]
+    private string _noiseControlDisplay = "Off";
+
     public void UpdateFromDevice(AirPodsDevice device)
     {
         ArgumentNullException.ThrowIfNull(device);
@@ -81,6 +94,8 @@ public sealed partial class AirPodsStatusViewModel : BaseViewModel
         Name = string.IsNullOrWhiteSpace(device.Name) ? "AirPods" : device.Name;
         ModelType = device.Model;
         ModelDisplay = FormatModelName(device.Model);
+        SupportsNoiseControl = device.Model.SupportsNoiseControl();
+        SupportsAdaptiveAudio = device.Model.SupportsAdaptiveAudio();
         ConnectionState = device.State;
         IsConnected = device.State == ConnectionState.Connected;
 

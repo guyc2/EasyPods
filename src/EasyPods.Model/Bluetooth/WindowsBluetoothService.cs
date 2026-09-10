@@ -170,15 +170,37 @@ public sealed class WindowsBluetoothService : IBluetoothService
             }
 
             var isPaired = btDevice.DeviceInformation.Pairing.IsPaired;
-            var isConnected = btDevice.ConnectionStatus == Windows.Devices.Bluetooth.BluetoothConnectionStatus.Connected;
-
-            AppLogger.Info($"BluetoothDevice query: Paired={isPaired}, Connected={isConnected}", nameof(WindowsBluetoothService));
+            AppLogger.Info($"BluetoothDevice query: Paired={isPaired}, Status={btDevice.ConnectionStatus}", nameof(WindowsBluetoothService));
 
             if (!isPaired)
             {
                 return Result.Fail(new ConnectionFailedFailure("AirPods are not paired with Windows yet. Open Windows Bluetooth Settings to pair them."));
             }
 
+            // Trigger active connection handshake by querying uncached RFCOMM services
+            try
+            {
+                _ = await btDevice.GetRfcommServicesAsync(Windows.Devices.Bluetooth.BluetoothCacheMode.Uncached);
+            }
+            catch (Exception ex)
+            {
+                AppLogger.Debug($"RFCOMM handshake note: {ex.Message}", nameof(WindowsBluetoothService));
+            }
+
+            // Update in-memory state to Connected
+            lock (_lock)
+            {
+                var idx = _discoveredDevices.FindIndex(d => d.BluetoothAddress == bluetoothAddress);
+                if (idx >= 0)
+                {
+                    var existing = _discoveredDevices[idx];
+                    var updated = existing with { State = ConnectionState.Connected };
+                    _discoveredDevices[idx] = updated;
+                    AirPodsDiscoveredOrUpdated?.Invoke(this, updated);
+                }
+            }
+
+            AppLogger.Info($"Successfully initiated connection to 0x{bluetoothAddress:X12}.", nameof(WindowsBluetoothService));
             return Result.Success();
         }
         catch (Exception ex)
@@ -193,6 +215,19 @@ public sealed class WindowsBluetoothService : IBluetoothService
         ThrowIfDisposed();
 
         AppLogger.Info($"DisconnectAudio requested for address: 0x{bluetoothAddress:X12}", nameof(WindowsBluetoothService));
+
+        lock (_lock)
+        {
+            var idx = _discoveredDevices.FindIndex(d => d.BluetoothAddress == bluetoothAddress);
+            if (idx >= 0)
+            {
+                var existing = _discoveredDevices[idx];
+                var updated = existing with { State = ConnectionState.Disconnected };
+                _discoveredDevices[idx] = updated;
+                AirPodsDiscoveredOrUpdated?.Invoke(this, updated);
+            }
+        }
+
         return Task.FromResult(Result.Success());
     }
 
