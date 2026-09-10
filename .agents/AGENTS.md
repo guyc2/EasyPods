@@ -126,18 +126,21 @@ For every new feature or major enhancement, the following workflow is mandatory:
    - Every feature plan MUST be broken into sequential, testable Sprints (steps).
    - Before finalizing the implementation plan, ask the user to confirm or specify the desired number of Sprints.
    - **Plan Governance**: Before starting implementation of any development plan or sprint, the plan MUST be reviewed and approved by the **Architecture Manager Subagent** (`manage-architecture` skill) to ensure Clean Architecture compliance, layer boundaries, MVVM separation, and domain purity.
-2. **Dedicated Architecture, Test, Review & Maintenance Subagents**:
-   - **Architecture Manager**: Governs plan creation, audits layer boundaries (`EasyPods.View`, `EasyPods.ViewModel`, `EasyPods.Model`), and enforces `/docs/` synchronization.
+2. **Dedicated Architecture, Test, Review, Security & Maintenance Subagents**:
+   - **Architecture Manager**: Governs plan creation, audits layer boundaries (`EasyPods.View`, `EasyPods.ViewModel`, `EasyPods.Model`), and enforces `/docs/` synchronization (`manage-architecture`).
+   - **Code Security Subagent**: Governed by the `security-audit` skill. Responsible for secrets scanning, Bluetooth telemetry privacy, BLE byte buffer bounds safety, WinRT handle disposal, and NuGet vulnerability auditing.
    - **Maintenance & Debugging**: Governed by the `manage-maintenance` skill. Responsible for proactive .NET SDK / NuGet package maintenance, static analysis zero-tolerance, and reactive bug triage with regression test coverage.
    - **Code Review**: Every Sprint implementation MUST be peer-reviewed by an independent Reviewer subagent using the `review-pr` skill. The Reviewer MUST always explicitly verify that centralized logging (`AppLogger`) and typed error handling (`Result`/`Failure`) are properly implemented without swallowed exceptions.
    - **Test Generation**: Tests MUST be written and verified by a dedicated Testing subagent to ensure unbiased coverage.
 3. **Strict Execution Gates**:
-   - Upon finishing a Sprint (code implementation + test coverage + review verification), execution MUST STOP.
+   - Upon finishing a Sprint (code implementation + test coverage + security audit + review verification), execution MUST STOP.
    - The agent MUST present the Sprint summary to the user and wait for explicit permission before resuming to the next Sprint.
 
 ---
 
-## 7. Configuration & Secrets Policy
+## 7. Configuration, Security & Privacy Policy
 
 - **Zero Hardcoded Secrets Policy**: Any credentials, telemetry keys, or configuration parameters must be loaded via appsettings or environment variables.
+- **Bluetooth Audio & Data Privacy**: Audio streams must never be captured or persisted. Bluetooth MAC addresses and personal names must be protected in telemetry.
+- **Memory Safety**: `AllowUnsafeBlocks` is strictly disabled. BLE payload parsers must enforce strict boundary checks on raw byte buffers.
 - **Template Synchronization**: Maintain a clean `appsettings.json` and `appsettings.example.json` in the view project.

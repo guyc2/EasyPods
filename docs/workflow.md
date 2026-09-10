@@ -37,9 +37,10 @@ gitGraph
 ## 2. Multi-Agent Governance Roles
 
 1. **Architecture Manager (`manage-architecture`)**: Audits plans, validates project boundaries (`EasyPods.View`, `EasyPods.ViewModel`, `EasyPods.Model`, `EasyPods.Test`), ensures domain purity and docs sync.
-2. **Maintenance & Debugging (`manage-maintenance`)**: Manages SDK/NuGet dependencies, monitors build warnings (`TreatWarningsAsErrors`), diagnoses runtime defects.
-3. **Code Reviewer (`review-pr`)**: Audits sprint PRs for typed error handling (`Result<T>`), structured telemetry (`AppLogger`), layer purity, and tests.
-4. **Testing Agent**: Verifies unit and integration test coverage.
+2. **Code Security Subagent (`security-audit`)**: Audits secrets, Bluetooth telemetry privacy, raw buffer bounds safety, and NuGet vulnerabilities.
+3. **Maintenance & Debugging (`manage-maintenance`)**: Manages SDK/NuGet dependencies, monitors build warnings (`TreatWarningsAsErrors`), diagnoses runtime defects.
+4. **Code Reviewer (`review-pr`)**: Audits sprint PRs for typed error handling (`Result<T>`), structured telemetry (`AppLogger`), layer purity, and tests.
+5. **Testing Agent**: Verifies unit and integration test coverage.
 
 ---
 
