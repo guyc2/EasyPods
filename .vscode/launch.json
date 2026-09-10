@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug EasyPods (WPF UI)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/EasyPods.View/bin/Debug/net8.0-windows10.0.19041.0/EasyPods.View.exe",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/EasyPods.View",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "env": {
+        "DOTNET_ROOT": "${env:USERPROFILE}\\.dotnet"
+      }
+    },
+    {
+      "name": "Attach to EasyPods Process",
+      "type": "coreclr",
+      "request": "attach"
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "command": "${env:USERPROFILE}/.dotnet/dotnet.exe",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/EasyPods.sln",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary;ForceNoAlign"
+      ],
+      "problemMatcher": "$msCompile",
+      "options": {
+        "env": {
+          "DOTNET_ROOT": "${env:USERPROFILE}/.dotnet"
+        }
+      }
+    },
+    {
+      "label": "publish",
+      "command": "${env:USERPROFILE}/.dotnet/dotnet.exe",
+      "type": "process",
+      "args": [
+        "publish",
+        "${workspaceFolder}/src/EasyPods.View/EasyPods.View.csproj",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary;ForceNoAlign"
+      ],
+      "problemMatcher": "$msCompile",
+      "options": {
+        "env": {
+          "DOTNET_ROOT": "${env:USERPROFILE}/.dotnet"
+        }
+      }
+    },
+    {
+      "label": "watch",
+      "command": "${env:USERPROFILE}/.dotnet/dotnet.exe",
+      "type": "process",
+      "args": [
+        "watch",
+        "run",
+        "--project",
+        "${workspaceFolder}/src/EasyPods.View/EasyPods.View.csproj"
+      ],
+      "problemMatcher": "$msCompile",
+      "options": {
+        "env": {
+          "DOTNET_ROOT": "${env:USERPROFILE}/.dotnet"
+        }
+      }
+    }
+  ]
+}

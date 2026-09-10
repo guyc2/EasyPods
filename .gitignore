@@ -16,7 +16,10 @@ x86/
 *.userosscache
 *.sln.docstates
 *.suo
-.vscode/
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/settings.json
 *.DotSettings.user
 
 # NuGet Packages

@@ -1,0 +1,14 @@
+{
+  "dotnet.dotnetPath": "${env:USERPROFILE}/.dotnet/dotnet.exe",
+  "dotnetAcquisitionExtension.existingDotnetPath": [
+    {
+      "extensionId": "ms-dotnettools.csharp",
+      "path": "${env:USERPROFILE}/.dotnet/dotnet.exe"
+    },
+    {
+      "extensionId": "ms-dotnettools.csdevkit",
+      "path": "${env:USERPROFILE}/.dotnet/dotnet.exe"
+    }
+  ],
+  "omnisharp.dotnetPath": "${env:USERPROFILE}/.dotnet/dotnet.exe"
+}
