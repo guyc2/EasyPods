@@ -131,7 +131,9 @@
                                     <TextBlock Text=" ⚡" FontSize="20" Foreground="#FFD60A" VerticalAlignment="Center"
                                                Visibility="{Binding SelectedAirPods.LeftPodCharging, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
                                 </StackPanel>
-                                <TextBlock Text="Ear / Case Sensor" FontSize="11" Foreground="#6E768E" HorizontalAlignment="Center"/>
+                                <Border Background="#1C202F" CornerRadius="4" Padding="6,2" Margin="0,2,0,0">
+                                    <TextBlock Text="{Binding SelectedAirPods.LeftPlacementText, FallbackValue='In Case'}" FontSize="11" Foreground="#A0A8BF" HorizontalAlignment="Center"/>
+                                </Border>
                             </StackPanel>
                         </Border>
 
@@ -145,7 +147,9 @@
                                     <TextBlock Text=" ⚡" FontSize="20" Foreground="#FFD60A" VerticalAlignment="Center"
                                                Visibility="{Binding SelectedAirPods.RightPodCharging, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
                                 </StackPanel>
-                                <TextBlock Text="Ear / Case Sensor" FontSize="11" Foreground="#6E768E" HorizontalAlignment="Center"/>
+                                <Border Background="#1C202F" CornerRadius="4" Padding="6,2" Margin="0,2,0,0">
+                                    <TextBlock Text="{Binding SelectedAirPods.RightPlacementText, FallbackValue='In Case'}" FontSize="11" Foreground="#A0A8BF" HorizontalAlignment="Center"/>
+                                </Border>
                             </StackPanel>
                         </Border>
 
@@ -159,7 +163,9 @@
                                     <TextBlock Text=" ⚡" FontSize="20" Foreground="#FFD60A" VerticalAlignment="Center"
                                                Visibility="{Binding SelectedAirPods.CaseCharging, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
                                 </StackPanel>
-                                <TextBlock Text="Lid Detection" FontSize="11" Foreground="#6E768E" HorizontalAlignment="Center"/>
+                                <Border Background="#1C202F" CornerRadius="4" Padding="6,2" Margin="0,2,0,0">
+                                    <TextBlock Text="{Binding SelectedAirPods.CaseLidText, FallbackValue='Closed'}" FontSize="11" Foreground="#82AAFF" HorizontalAlignment="Center"/>
+                                </Border>
                             </StackPanel>
                         </Border>
                     </UniformGrid>

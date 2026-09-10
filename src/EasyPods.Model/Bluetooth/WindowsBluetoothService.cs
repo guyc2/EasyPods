@@ -154,12 +154,38 @@ public sealed class WindowsBluetoothService : IBluetoothService
         }
     }
 
-    public Task<Result> ConnectAudioAsync(ulong bluetoothAddress, CancellationToken cancellationToken = default)
+    public async Task<Result> ConnectAudioAsync(ulong bluetoothAddress, CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
 
         AppLogger.Info($"ConnectAudio requested for address: 0x{bluetoothAddress:X12}", nameof(WindowsBluetoothService));
-        return Task.FromResult(Result.Success());
+
+        try
+        {
+            var btDevice = await Windows.Devices.Bluetooth.BluetoothDevice.FromBluetoothAddressAsync(bluetoothAddress);
+            if (btDevice is null)
+            {
+                AppLogger.Warn($"Bluetooth device 0x{bluetoothAddress:X12} not found by Windows subsystem.", nameof(WindowsBluetoothService));
+                return Result.Fail(new DeviceNotFoundFailure($"Device 0x{bluetoothAddress:X12} was not found in Windows Bluetooth cache."));
+            }
+
+            var isPaired = btDevice.DeviceInformation.Pairing.IsPaired;
+            var isConnected = btDevice.ConnectionStatus == Windows.Devices.Bluetooth.BluetoothConnectionStatus.Connected;
+
+            AppLogger.Info($"BluetoothDevice query: Paired={isPaired}, Connected={isConnected}", nameof(WindowsBluetoothService));
+
+            if (!isPaired)
+            {
+                return Result.Fail(new ConnectionFailedFailure("AirPods are not paired with Windows yet. Open Windows Bluetooth Settings to pair them."));
+            }
+
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error("Exception when connecting audio device.", ex, nameof(WindowsBluetoothService));
+            return Result.Fail(new ConnectionFailedFailure("Failed to connect to AirPods audio device.", ex));
+        }
     }
 
     public Task<Result> DisconnectAudioAsync(ulong bluetoothAddress, CancellationToken cancellationToken = default)
@@ -200,7 +226,7 @@ public sealed class WindowsBluetoothService : IBluetoothService
 
     public void ProcessAdvertisement(ulong address, string? name, byte[] payload, short rssi = 0)
     {
-        var parseResult = AirPodsBeaconParser.Parse(payload);
+        var parseResult = AirPodsBeaconParser.Parse(payload, timestamp: DateTimeOffset.UtcNow, advertisedName: name);
         if (parseResult.IsFailure) return;
 
         var telemetry = parseResult.Value;
@@ -210,7 +236,7 @@ public sealed class WindowsBluetoothService : IBluetoothService
             Model: telemetry.Model,
             State: ConnectionState.Disconnected,
             Battery: telemetry.Battery,
-            InEar: InEarStatus.Unknown,
+            InEar: telemetry.InEar,
             LastSeenUtc: DateTimeOffset.UtcNow,
             Rssi: rssi);
 
@@ -227,7 +253,7 @@ public sealed class WindowsBluetoothService : IBluetoothService
             }
         }
 
-        AppLogger.Debug($"AirPods telemetry updated: 0x{address:X12} ({device.Model}) RSSI: {rssi} dBm", nameof(WindowsBluetoothService));
+        AppLogger.Debug($"AirPods telemetry updated: 0x{address:X12} ({device.Model}) RSSI: {rssi} dBm InEar(L:{device.InEar.LeftInEar}, R:{device.InEar.RightInEar}) LidOpen:{device.InEar.IsCaseLidOpen}", nameof(WindowsBluetoothService));
         AirPodsDiscoveredOrUpdated?.Invoke(this, device);
     }
 

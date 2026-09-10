@@ -19,6 +19,9 @@ public sealed partial class AirPodsStatusViewModel : BaseViewModel
     private string _modelDisplay = "Apple AirPods";
 
     [ObservableProperty]
+    private AirPodsModelType _modelType = AirPodsModelType.Unknown;
+
+    [ObservableProperty]
     private ConnectionState _connectionState = ConnectionState.Disconnected;
 
     [ObservableProperty]
@@ -51,6 +54,24 @@ public sealed partial class AirPodsStatusViewModel : BaseViewModel
     [ObservableProperty]
     private string _lastSeenText = "Just now";
 
+    [ObservableProperty]
+    private bool _leftInEar;
+
+    [ObservableProperty]
+    private bool _rightInEar;
+
+    [ObservableProperty]
+    private bool _isCaseLidOpen;
+
+    [ObservableProperty]
+    private string _leftPlacementText = "In Case";
+
+    [ObservableProperty]
+    private string _rightPlacementText = "In Case";
+
+    [ObservableProperty]
+    private string _caseLidText = "Closed";
+
     public void UpdateFromDevice(AirPodsDevice device)
     {
         ArgumentNullException.ThrowIfNull(device);
@@ -58,6 +79,7 @@ public sealed partial class AirPodsStatusViewModel : BaseViewModel
         BluetoothAddress = device.BluetoothAddress;
         FormattedAddress = device.FormattedMacAddress;
         Name = string.IsNullOrWhiteSpace(device.Name) ? "AirPods" : device.Name;
+        ModelType = device.Model;
         ModelDisplay = FormatModelName(device.Model);
         ConnectionState = device.State;
         IsConnected = device.State == ConnectionState.Connected;
@@ -74,6 +96,14 @@ public sealed partial class AirPodsStatusViewModel : BaseViewModel
         Rssi = device.Rssi;
         SignalStrength = EvaluateSignalStrength(device.Rssi);
         LastSeenText = FormatLastSeen(device.LastSeenUtc);
+
+        LeftInEar = device.InEar.LeftInEar ?? false;
+        RightInEar = device.InEar.RightInEar ?? false;
+        IsCaseLidOpen = device.InEar.IsCaseLidOpen ?? false;
+
+        LeftPlacementText = LeftInEar ? "👂 In Ear" : (LeftPodBattery.HasValue ? "📦 In Case" : "Disconnected");
+        RightPlacementText = RightInEar ? "👂 In Ear" : (RightPodBattery.HasValue ? "📦 In Case" : "Disconnected");
+        CaseLidText = IsCaseLidOpen ? "📂 Lid Open" : "📁 Closed";
     }
 
     private static string EvaluateSignalStrength(short rssi) => rssi switch
@@ -94,15 +124,18 @@ public sealed partial class AirPodsStatusViewModel : BaseViewModel
         return lastSeen.ToLocalTime().ToString("t");
     }
 
-    private static string FormatModelName(AirPodsModelType model) => model switch
+    public static string FormatModelName(AirPodsModelType model) => model switch
     {
         AirPodsModelType.AirPodsGen1 => "AirPods (1st Gen)",
         AirPodsModelType.AirPodsGen2 => "AirPods (2nd Gen)",
         AirPodsModelType.AirPodsGen3 => "AirPods (3rd Gen)",
         AirPodsModelType.AirPodsGen4 => "AirPods 4",
+        AirPodsModelType.AirPodsGen4Anc => "AirPods 4 (Active Noise Cancellation)",
         AirPodsModelType.AirPodsProGen1 => "AirPods Pro (1st Gen)",
-        AirPodsModelType.AirPodsProGen2 => "AirPods Pro (2nd Gen)",
-        AirPodsModelType.AirPodsMax => "AirPods Max",
+        AirPodsModelType.AirPodsProGen2Lightning => "AirPods Pro 2 (Lightning)",
+        AirPodsModelType.AirPodsProGen2UsbC => "AirPods Pro 2 (MagSafe USB-C)",
+        AirPodsModelType.AirPodsMaxLightning => "AirPods Max (Lightning)",
+        AirPodsModelType.AirPodsMaxUsbC => "AirPods Max (USB-C 2024)",
         _ => "Apple AirPods"
     };
 }
