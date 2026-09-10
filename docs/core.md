@@ -70,8 +70,16 @@ classDiagram
 
 ---
 
-## 3. Telemetry (`AppLogger`)
+## 3. Telemetry & Logging (`AppLogger` via NLog)
 
-Centralized structured logging wrapper around `ILogger`:
-- Logs contain structured key-value context (`device_address`, `model_type`, `battery_level`).
-- Swallowed exceptions and empty catch blocks are prohibited.
+Centralized structured logging powered by **NLog** with non-blocking asynchronous targets:
+- **Async Rolling File Target**: `%LOCALAPPDATA%\EasyPods\Logs\easypods-${shortdate}.log`
+  - Automated daily rotation and 7-day retention in `archives/`.
+  - Non-blocking async queue ensures Bluetooth LE advertisement processing and UI threads never stall.
+- **Debugger Target**: Streams colored log events directly to Visual Studio / IDE Output.
+- **Convenient Static Facade**:
+  - `AppLogger.D(msg, tag)`
+  - `AppLogger.I(msg, tag)`
+  - `AppLogger.W(msg, tag)`
+  - `AppLogger.E(msg, exception, tag)`
+- Swallowed exceptions and unlogged errors are strictly prohibited across all layers.

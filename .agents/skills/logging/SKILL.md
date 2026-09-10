@@ -1,27 +1,49 @@
 ---
 name: logging
-description: Guidelines and utility interface for structured logging and telemetry across EasyPods.
+description: Guidelines and utility interface for structured logging and telemetry across EasyPods using NLog.
 ---
 
 # Logging Guidelines (`logging`)
 
-This skill defines the structured logging and telemetry standards for **EasyPods**.
+This skill defines the structured logging and telemetry standards for **EasyPods**, powered by **NLog**.
 
 ---
 
-## 1. Principles
-- **Centralized Telemetry**: All components log via `AppLogger` or `ILogger<T>`.
-- **Structured Properties**: Include context (e.g. DeviceAddress, DeviceName, BatteryLevel, State) rather than string concatenation.
-- **Log Levels**:
-  - `Trace`: Raw Bluetooth advertisement hex bytes, frame payloads.
-  - `Debug`: Device state transitions, beacon decoded events.
-  - `Info`: App startup, connection established, device disconnected.
-  - `Warning`: Transient Bluetooth retry, unknown beacon format, low battery alert.
-  - `Error`: Connection handshake failure, WinRT hardware exception, unhandled failure.
+## 1. Architecture & Outputs
+
+EasyPods utilizes **NLog** with non-blocking asynchronous targets:
+1. **Visual Studio Debugger Output**: Real-time log streaming in IDE Output.
+2. **Rolling File Target**:
+   - Location: `%LOCALAPPDATA%\EasyPods\Logs\easypods-${shortdate}.log`
+   - Archive: `%LOCALAPPDATA%\EasyPods\Logs\archives\` (Daily rolling, up to 7 days preserved).
+   - Threading: Asynchronous target wrapper (`AsyncTargetWrapper`) ensuring Bluetooth packet handling and UI threads are never blocked.
 
 ---
 
-## 2. Rules
-- NEVER swallow exceptions without logging.
-- NEVER log sensitive user data or personal identifiers.
-- Ensure logging calls are fast and do not block Bluetooth processing threads.
+## 2. API & Usage
+
+All layers log via the static `AppLogger` utility in `EasyPods.Model.Common`:
+
+```csharp
+using EasyPods.Model.Common;
+
+// 1. Debug: fine-grained BLE packets, state transitions, cache lookups
+AppLogger.D("Decoded beacon byte payload: 0x4C...", tag: nameof(AirPodsBeaconParser));
+
+// 2. Info: key lifecycle milestones
+AppLogger.I("Connected to AirPods Pro.", tag: nameof(MainViewModel));
+
+// 3. Warning: non-fatal issues, retries, low battery
+AppLogger.W("Bluetooth adapter disabled.", tag: nameof(WindowsBluetoothService));
+
+// 4. Error: failures with optional exception
+AppLogger.E("Audio routing failed.", ex, tag: nameof(WindowsBluetoothService));
+```
+
+---
+
+## 3. Rules
+
+- **Zero Swallowed Exceptions**: Any caught exception that causes a operation to fail must be logged via `AppLogger.E` and returned as a typed `Failure`.
+- **Tag Conventions**: Use `nameof(CurrentClass)` for the `tag` parameter to make log filtering seamless.
+- **Data Privacy**: Never log personal identifiable information or raw user audio data.

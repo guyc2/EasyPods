@@ -36,18 +36,21 @@ public sealed partial class MainViewModel : BaseViewModel
         IsBusy = true;
         ClearError();
         StatusMessage = "Starting Bluetooth monitor...";
+        AppLogger.I("Starting Bluetooth monitor...", tag: nameof(MainViewModel));
 
         var result = await _bluetoothService.StartMonitoringAsync();
         result.Match(
             onSuccess: () =>
             {
                 StatusMessage = "Monitoring for AirPods nearby...";
+                AppLogger.I("Bluetooth monitoring active.", tag: nameof(MainViewModel));
                 return true;
             },
             onFailure: failure =>
             {
                 SetError(failure.Message);
                 StatusMessage = "Bluetooth monitoring unavailable.";
+                AppLogger.W($"Failed to start monitoring: {failure.Message}", tag: nameof(MainViewModel));
                 return false;
             });
 
@@ -62,18 +65,21 @@ public sealed partial class MainViewModel : BaseViewModel
         IsBusy = true;
         ClearError();
         StatusMessage = $"Connecting to {deviceVm.Name}...";
+        AppLogger.I($"Connecting to {deviceVm.Name} (0x{deviceVm.BluetoothAddress:X})...", tag: nameof(MainViewModel));
 
         var result = await _bluetoothService.ConnectAudioAsync(deviceVm.BluetoothAddress);
         result.Match(
             onSuccess: () =>
             {
                 StatusMessage = $"Connected to {deviceVm.Name}.";
+                AppLogger.I($"Successfully connected audio for {deviceVm.Name}.", tag: nameof(MainViewModel));
                 return true;
             },
             onFailure: failure =>
             {
                 SetError(failure.Message);
                 StatusMessage = "Connection attempt failed.";
+                AppLogger.E($"Failed to connect audio for {deviceVm.Name}: {failure.Message}", failure.Exception, tag: nameof(MainViewModel));
                 return false;
             });
 
