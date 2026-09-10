@@ -10,7 +10,8 @@ public sealed record AirPodsDevice(
     ConnectionState State,
     BatteryInfo Battery,
     InEarStatus InEar,
-    DateTimeOffset LastSeenUtc)
+    DateTimeOffset LastSeenUtc,
+    short Rssi = 0)
 {
     public string FormattedMacAddress => string.Format(
         "{0:X2}:{1:X2}:{2:X2}:{3:X2}:{4:X2}:{5:X2}",

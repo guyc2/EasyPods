@@ -8,9 +8,11 @@ using EasyPods.ViewModel.Common;
 
 namespace EasyPods.ViewModel.ViewModels;
 
-public sealed partial class MainViewModel : BaseViewModel
+public sealed partial class MainViewModel : BaseViewModel, IDisposable, IAsyncDisposable
 {
     private readonly IBluetoothService _bluetoothService;
+    private readonly SynchronizationContext? _syncContext;
+    private bool _isDisposed;
 
     [ObservableProperty]
     private bool _isBluetoothRadioOn = true;
@@ -26,8 +28,11 @@ public sealed partial class MainViewModel : BaseViewModel
     public MainViewModel(IBluetoothService bluetoothService)
     {
         _bluetoothService = bluetoothService ?? throw new ArgumentNullException(nameof(bluetoothService));
+        _syncContext = SynchronizationContext.Current;
+
         _bluetoothService.AirPodsDiscoveredOrUpdated += OnAirPodsDiscoveredOrUpdated;
         _bluetoothService.BluetoothRadioStateChanged += OnBluetoothRadioStateChanged;
+        IsBluetoothRadioOn = _bluetoothService.IsRadioEnabled;
     }
 
     [RelayCommand]
@@ -51,6 +56,29 @@ public sealed partial class MainViewModel : BaseViewModel
                 SetError(failure.Message);
                 StatusMessage = "Bluetooth monitoring unavailable.";
                 AppLogger.Warn($"Failed to start monitoring: {failure.Message}", tag: nameof(MainViewModel));
+                return false;
+            });
+
+        IsBusy = false;
+    }
+
+    [RelayCommand]
+    public async Task StopMonitoringAsync()
+    {
+        IsBusy = true;
+        StatusMessage = "Stopping Bluetooth monitor...";
+        AppLogger.Info("Stopping Bluetooth monitor...", tag: nameof(MainViewModel));
+
+        var result = await _bluetoothService.StopMonitoringAsync();
+        result.Match(
+            onSuccess: () =>
+            {
+                StatusMessage = "Monitoring paused.";
+                return true;
+            },
+            onFailure: failure =>
+            {
+                SetError(failure.Message);
                 return false;
             });
 
@@ -88,31 +116,77 @@ public sealed partial class MainViewModel : BaseViewModel
 
     private void OnAirPodsDiscoveredOrUpdated(object? sender, AirPodsDevice device)
     {
-        var existing = AirPodsList.FirstOrDefault(vm => vm.BluetoothAddress == device.BluetoothAddress);
-        if (existing is null)
+        void UpdateAction()
         {
-            existing = new AirPodsStatusViewModel();
-            existing.UpdateFromDevice(device);
-            AirPodsList.Add(existing);
+            var existing = AirPodsList.FirstOrDefault(vm => vm.BluetoothAddress == device.BluetoothAddress);
+            if (existing is null)
+            {
+                existing = new AirPodsStatusViewModel();
+                existing.UpdateFromDevice(device);
+                AirPodsList.Add(existing);
+            }
+            else
+            {
+                existing.UpdateFromDevice(device);
+            }
+
+            SelectedAirPods ??= existing;
+        }
+
+        if (_syncContext is not null && SynchronizationContext.Current != _syncContext)
+        {
+            _syncContext.Post(_ => UpdateAction(), null);
         }
         else
         {
-            existing.UpdateFromDevice(device);
+            UpdateAction();
         }
-
-        SelectedAirPods ??= existing;
     }
 
     private void OnBluetoothRadioStateChanged(object? sender, bool isEnabled)
     {
-        IsBluetoothRadioOn = isEnabled;
-        if (!isEnabled)
+        void StateAction()
         {
-            SetError("Bluetooth adapter is turned off in Windows.");
+            IsBluetoothRadioOn = isEnabled;
+            if (!isEnabled)
+            {
+                SetError("Bluetooth adapter is turned off in Windows.");
+                StatusMessage = "Bluetooth is disabled.";
+            }
+            else
+            {
+                ClearError();
+                StatusMessage = "Bluetooth enabled. Ready.";
+            }
+        }
+
+        if (_syncContext is not null && SynchronizationContext.Current != _syncContext)
+        {
+            _syncContext.Post(_ => StateAction(), null);
         }
         else
         {
-            ClearError();
+            StateAction();
         }
+    }
+
+    public void Dispose()
+    {
+        if (_isDisposed) return;
+        _isDisposed = true;
+
+        _bluetoothService.AirPodsDiscoveredOrUpdated -= OnAirPodsDiscoveredOrUpdated;
+        _bluetoothService.BluetoothRadioStateChanged -= OnBluetoothRadioStateChanged;
+        _bluetoothService.Dispose();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_isDisposed) return;
+        _isDisposed = true;
+
+        _bluetoothService.AirPodsDiscoveredOrUpdated -= OnAirPodsDiscoveredOrUpdated;
+        _bluetoothService.BluetoothRadioStateChanged -= OnBluetoothRadioStateChanged;
+        await _bluetoothService.DisposeAsync();
     }
 }

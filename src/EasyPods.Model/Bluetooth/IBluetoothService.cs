@@ -3,7 +3,7 @@ using EasyPods.Model.Entities;
 
 namespace EasyPods.Model.Bluetooth;
 
-public interface IBluetoothService
+public interface IBluetoothService : IDisposable, IAsyncDisposable
 {
     event EventHandler<AirPodsDevice>? AirPodsDiscoveredOrUpdated;
     event EventHandler<bool>? BluetoothRadioStateChanged;

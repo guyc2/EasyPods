@@ -9,12 +9,28 @@ namespace EasyPods.View;
 /// </summary>
 public partial class MainWindow : Window
 {
+    private readonly MainViewModel _viewModel;
+
     public MainWindow()
     {
         InitializeComponent();
 
-        // Initial setup: In Sprint 4 this is wired via DI (IServiceProvider)
         var bluetoothService = new WindowsBluetoothService();
-        DataContext = new MainViewModel(bluetoothService);
+        _viewModel = new MainViewModel(bluetoothService);
+        DataContext = _viewModel;
+
+        Loaded += MainWindow_Loaded;
+        Closed += MainWindow_Closed;
+    }
+
+    private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        // Auto-start monitoring when the window opens
+        await _viewModel.StartMonitoringCommand.ExecuteAsync(null);
+    }
+
+    private void MainWindow_Closed(object? sender, EventArgs e)
+    {
+        _viewModel.Dispose();
     }
 }

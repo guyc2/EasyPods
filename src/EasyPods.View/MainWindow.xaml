@@ -6,13 +6,15 @@
         xmlns:vm="clr-namespace:EasyPods.ViewModel.ViewModels;assembly=EasyPods.ViewModel"
         mc:Ignorable="d"
         Title="EasyPods — AirPods Manager" 
-        Height="540" Width="720"
+        Height="570" Width="740"
         WindowStartupLocation="CenterScreen"
         Background="#12131A"
         Foreground="#ECEFF4"
         FontFamily="Segoe UI Variable Display, Segoe UI, sans-serif">
 
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
         <Style TargetType="Button" x:Key="ModernButtonStyle">
             <Setter Property="Background" Value="#0A84FF"/>
             <Setter Property="Foreground" Value="White"/>
@@ -38,7 +40,7 @@
             <Setter Property="BorderBrush" Value="#2E3244"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="Padding" Value="16"/>
+            <Setter Property="Padding" Value="18"/>
         </Style>
     </Window.Resources>
 
@@ -51,18 +53,24 @@
         </Grid.RowDefinitions>
 
         <!-- Top Bar / Header -->
-        <DockPanel Grid.Row="0" Margin="0,0,0,20">
+        <DockPanel Grid.Row="0" Margin="0,0,0,18">
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
                 <TextBlock Text="🎧 EasyPods" FontSize="22" FontWeight="Bold" Foreground="#FFFFFF"/>
                 <Border Background="#1C382A" CornerRadius="6" Padding="8,3" Margin="12,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="AirPods Ready" FontSize="11" FontWeight="SemiBold" Foreground="#30D158"/>
+                    <TextBlock Text="Live WinRT Watcher" FontSize="11" FontWeight="SemiBold" Foreground="#30D158"/>
                 </Border>
             </StackPanel>
 
-            <Button DockPanel.Dock="Right" 
-                    Content="Scan Nearby" 
-                    Style="{StaticResource ModernButtonStyle}" 
-                    Command="{Binding StartMonitoringCommand}"/>
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                <Button Content="Scan Nearby" 
+                        Style="{StaticResource ModernButtonStyle}" 
+                        Command="{Binding StartMonitoringCommand}"
+                        Margin="0,0,8,0"/>
+                <Button Content="Pause" 
+                        Background="#2D3142"
+                        Style="{StaticResource ModernButtonStyle}" 
+                        Command="{Binding StopMonitoringCommand}"/>
+            </StackPanel>
         </DockPanel>
 
         <!-- Status / Alert Bar -->
@@ -83,19 +91,32 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Device Header -->
+                    <!-- Device Header with Signal Badge -->
                     <DockPanel Grid.Row="0" Margin="0,0,0,16">
                         <StackPanel DockPanel.Dock="Left">
-                            <TextBlock Text="{Binding SelectedAirPods.Name, FallbackValue='No AirPods Detected'}" FontSize="18" FontWeight="Bold" Foreground="#FFFFFF"/>
-                            <TextBlock Text="{Binding SelectedAirPods.ModelDisplay, FallbackValue='Open case or pair nearby'}" FontSize="13" Foreground="#8F96A9" Margin="0,2,0,0"/>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding SelectedAirPods.Name, FallbackValue='Searching for AirPods...'}" FontSize="19" FontWeight="Bold" Foreground="#FFFFFF"/>
+                                <Border Background="#232B3E" CornerRadius="5" Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding SelectedAirPods.FormattedAddress, FallbackValue='Scanning BLE...'}" FontSize="11" Foreground="#82AAFF"/>
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Text="{Binding SelectedAirPods.ModelDisplay, FallbackValue='Bring case near or open lid'}" FontSize="13" Foreground="#8F96A9" Margin="0,4,0,0"/>
                         </StackPanel>
 
-                        <Button DockPanel.Dock="Right" 
-                                Content="Connect Audio" 
-                                Style="{StaticResource ModernButtonStyle}"
-                                VerticalAlignment="Center"
-                                Command="{Binding ConnectDeviceCommand}"
-                                CommandParameter="{Binding SelectedAirPods}"/>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                            <!-- Signal Strength Indicator -->
+                            <Border Background="#252837" CornerRadius="6" Padding="10,6" Margin="0,0,10,0" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📶 " FontSize="12"/>
+                                    <TextBlock Text="{Binding SelectedAirPods.SignalStrength, FallbackValue='--'}" FontSize="12" FontWeight="SemiBold" Foreground="#30D158"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Button Content="Connect Audio" 
+                                    Style="{StaticResource ModernButtonStyle}"
+                                    Command="{Binding ConnectDeviceCommand}"
+                                    CommandParameter="{Binding SelectedAirPods}"/>
+                        </StackPanel>
                     </DockPanel>
 
                     <!-- Pod Telemetry Widgets -->
@@ -104,9 +125,13 @@
                         <Border Background="#252837" CornerRadius="10" Padding="16" Margin="6">
                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <TextBlock Text="Left Pod" FontSize="14" FontWeight="SemiBold" Foreground="#B0B8C8" HorizontalAlignment="Center"/>
-                                <TextBlock Text="{Binding SelectedAirPods.LeftPodBattery, StringFormat='{}{0}%', FallbackValue='--'}" 
-                                           FontSize="28" FontWeight="Bold" Foreground="#30D158" HorizontalAlignment="Center" Margin="0,8,0,4"/>
-                                <TextBlock Text="In Case" FontSize="12" Foreground="#6E768E" HorizontalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,4">
+                                    <TextBlock Text="{Binding SelectedAirPods.LeftPodBattery, StringFormat='{}{0}%', FallbackValue='--'}" 
+                                               FontSize="30" FontWeight="Bold" Foreground="#30D158"/>
+                                    <TextBlock Text=" ⚡" FontSize="20" Foreground="#FFD60A" VerticalAlignment="Center"
+                                               Visibility="{Binding SelectedAirPods.LeftPodCharging, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
+                                </StackPanel>
+                                <TextBlock Text="Ear / Case Sensor" FontSize="11" Foreground="#6E768E" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </Border>
 
@@ -114,9 +139,13 @@
                         <Border Background="#252837" CornerRadius="10" Padding="16" Margin="6">
                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <TextBlock Text="Right Pod" FontSize="14" FontWeight="SemiBold" Foreground="#B0B8C8" HorizontalAlignment="Center"/>
-                                <TextBlock Text="{Binding SelectedAirPods.RightPodBattery, StringFormat='{}{0}%', FallbackValue='--'}" 
-                                           FontSize="28" FontWeight="Bold" Foreground="#30D158" HorizontalAlignment="Center" Margin="0,8,0,4"/>
-                                <TextBlock Text="In Case" FontSize="12" Foreground="#6E768E" HorizontalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,4">
+                                    <TextBlock Text="{Binding SelectedAirPods.RightPodBattery, StringFormat='{}{0}%', FallbackValue='--'}" 
+                                               FontSize="30" FontWeight="Bold" Foreground="#30D158"/>
+                                    <TextBlock Text=" ⚡" FontSize="20" Foreground="#FFD60A" VerticalAlignment="Center"
+                                               Visibility="{Binding SelectedAirPods.RightPodCharging, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
+                                </StackPanel>
+                                <TextBlock Text="Ear / Case Sensor" FontSize="11" Foreground="#6E768E" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </Border>
 
@@ -124,17 +153,24 @@
                         <Border Background="#252837" CornerRadius="10" Padding="16" Margin="6">
                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <TextBlock Text="Charging Case" FontSize="14" FontWeight="SemiBold" Foreground="#B0B8C8" HorizontalAlignment="Center"/>
-                                <TextBlock Text="{Binding SelectedAirPods.CaseBattery, StringFormat='{}{0}%', FallbackValue='--'}" 
-                                           FontSize="28" FontWeight="Bold" Foreground="#0A84FF" HorizontalAlignment="Center" Margin="0,8,0,4"/>
-                                <TextBlock Text="Closed" FontSize="12" Foreground="#6E768E" HorizontalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,4">
+                                    <TextBlock Text="{Binding SelectedAirPods.CaseBattery, StringFormat='{}{0}%', FallbackValue='--'}" 
+                                               FontSize="30" FontWeight="Bold" Foreground="#0A84FF"/>
+                                    <TextBlock Text=" ⚡" FontSize="20" Foreground="#FFD60A" VerticalAlignment="Center"
+                                               Visibility="{Binding SelectedAirPods.CaseCharging, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
+                                </StackPanel>
+                                <TextBlock Text="Lid Detection" FontSize="11" Foreground="#6E768E" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </Border>
                     </UniformGrid>
 
-                    <!-- Bottom Quick Info -->
+                    <!-- Bottom Quick Info with Last Seen -->
                     <DockPanel Grid.Row="2" Margin="0,12,0,0">
-                        <TextBlock Text="BLE Advertisement Monitoring: Active" FontSize="11" Foreground="#6E768E" DockPanel.Dock="Left"/>
-                        <TextBlock Text="Windows 11 Fluent Edition" FontSize="11" Foreground="#6E768E" DockPanel.Dock="Right"/>
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                            <TextBlock Text="Beacon Telemetry: " FontSize="11" Foreground="#6E768E"/>
+                            <TextBlock Text="{Binding SelectedAirPods.LastSeenText, FallbackValue='Listening...'}" FontSize="11" Foreground="#82AAFF"/>
+                        </StackPanel>
+                        <TextBlock Text="WinRT BLE Passive/Active Sniffer" FontSize="11" Foreground="#6E768E" DockPanel.Dock="Right"/>
                     </DockPanel>
                 </Grid>
             </Border>

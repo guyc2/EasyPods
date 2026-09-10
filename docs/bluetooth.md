@@ -33,13 +33,24 @@ sequenceDiagram
     participant Pods as Apple AirPods
 
     UI->>BT: StartMonitoringAsync()
-    BT->>WinRT: Start BLE Advertisement Watcher
+    BT->>WinRT: Start BLE Advertisement Watcher (Filter: 0x004C)
     Pods-->>WinRT: Broadcast Apple BLE Manufacturer Beacon
-    WinRT-->>BT: Received Advertisement (CompanyId 0x004C)
-    BT->>BT: Parse Battery & Ear Placement
-    BT-->>UI: OnAirPodsTelemetryUpdated(BatteryInfo)
+    WinRT-->>BT: Received Advertisement (args.RawSignalStrengthInDBm)
+    BT->>BT: Parse Battery, Charging & Proximity
+    BT-->>UI: OnAirPodsTelemetryUpdated(AirPodsDevice)
     UI->>BT: ConnectAudioAsync(address)
     BT->>WinRT: BluetoothDevice.FromBluetoothAddressAsync()
     BT->>WinRT: Set Default Audio Endpoint
     BT-->>UI: Result.Success()
 ```
+
+---
+
+## 3. BluetoothLEAdvertisementWatcher Implementation
+
+Configured in `EasyPods.Model.Bluetooth.WindowsBluetoothService`:
+- **Scanning Mode**: `BluetoothLEScanningMode.Active` (requests scan response packets).
+- **Company ID Filter**: Filtered at the Windows kernel driver level for Apple Inc. (`0x004C`) to minimize CPU wakeups.
+- **Signal Strength**: Extracts `RawSignalStrengthInDBm` (RSSI) and maps to proximity states (`Excellent`, `Good`, `Fair`, `Weak`).
+- **Buffer Safety**: Uses `Windows.Storage.Streams.DataReader` to copy payload bytes safely with bounds protection.
+- **Resource Lifecycle**: Implements `IDisposable` and `IAsyncDisposable` to stop watcher threads and unregister native WinRT event delegates cleanly.
